@@ -1,0 +1,55 @@
+server:
+  port: 8091
+  application:
+    name: xfg-dev-tech-app
+
+spring:
+#  rabbitmq:
+#    addresses: 192.168.1.108
+#    port: 5672
+#    username: admin
+#    password: admin
+#    listener:
+#      simple:
+#        prefetch: 10 # 每次投递n个消息，消费完在投递n个
+  kafka:
+    bootstrap-servers: 192.168.1.105:9092
+    producer:
+      # 发生错误后，消息重发的次数。
+      retries: 1
+      #当有多个消息需要被发送到同一个分区时，生产者会把它们放在同一个批次里。该参数指定了一个批次可以使用的内存大小，按照字节数计算。
+      batch-size: 16384
+      # 设置生产者内存缓冲区的大小。
+      buffer-memory: 33554432
+      acks: 1
+    consumer:
+      # 自动提交的时间间隔 在spring boot 2.X 版本中这里采用的是值的类型为Duration 需要符合特定的格式，如1S,1M,2H,5D
+      auto-commit-interval: 1S
+      # 该属性指定了消费者在读取一个没有偏移量的分区或者偏移量无效的情况下该作何处理：
+      # latest（默认值）在偏移量无效的情况下，消费者将从最新的记录开始读取数据（在消费者启动之后生成的记录）
+      # earliest ：在偏移量无效的情况下，消费者将从起始位置读取分区的记录
+      auto-offset-reset: earliest
+      # 是否自动提交偏移量，默认值是true,为了避免出现重复数据和数据丢失，可以把它设置为false,然后手动提交偏移量
+      enable-auto-commit: false
+  cloud:
+    stream:
+      bindings:
+        output:
+          destination: ${mq.topic.user}
+        input:
+          destination: ${mq.topic.user}
+        myoutput:
+          destination: ${mq.topic.user02}
+        myinput:
+          destination: ${mq.topic.user02}
+
+mq:
+  topic:
+    user: xfg-topic
+    user02: xfg-topic-02
+
+# 日志
+logging:
+  level:
+    root: debug
+  config: classpath:logback-spring.xml

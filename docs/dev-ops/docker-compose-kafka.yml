@@ -1,0 +1,47 @@
+version: '3.0'
+# docker-compose -f docker-compose-kafka.yml up -d
+services:
+  kafka:
+    container_name: kafka
+    image: bitnami/kafka:3.9.0
+    ports:
+      - :9092:9092
+    restart: always
+    environment:
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      # 注意，你可以在电脑上增加 kafka 的 host 映射ip，或者直接写上服务器ip地址
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://192.168.1.105:9092
+#      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@127.0.0.1:9093
+      KAFKA_CFG_FETCH_MESSAGE_MAX_BYTES: 524288000
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_LOG_RETENTION_MS: 60000
+      KAFKA_CFG_MAX_REQUEST_SIZE: 524288000
+      KAFKA_CFG_MESSAGE_MAX_BYTES: 524288000
+      KAFKA_CFG_NODE_ID: 0
+      KAFKA_CFG_PARTITION_FETCH_BYTES: 524288000
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+      KAFKA_CFG_REPLICA_FETCH_MAX_BYTES: 524288000
+      KAFKA_HEAP_OPTS: -Xmx512m -Xms256m
+    networks:
+      - my-network
+    extra_hosts:
+      - "kafka:host-gateway"
+
+  # http://127.0.0.1:8088
+  redpanda-console:
+    container_name: kafka-console
+    image: redpandadata/console:v2.7.2
+    ports:
+      - 8088:8080
+    restart: always
+    networks:
+      - my-network
+    environment:
+      KAFKA_BROKERS: kafka:9092
+
+networks:
+  my-network:
+    driver: bridge
